@@ -28,12 +28,13 @@ const service = {
 	      VALUES (${name}, ${about}, ${price})
 	      RETURNING *
         `;
-
-          
           callback(product[0] );
         },
-        
-       
+  const deleteProduct = await sql`
+    DELETE FROM products  
+    WHERE id = ${id}
+    RETURNING *`;
+       callback(deleteProduct[0]),
     },
     GetProducts : function(args){
       return {

@@ -25,12 +25,9 @@ const UserSchema = z.object({
     password: z.string()
  });
 
-//const responseUserSchema = UserSchema.omit({password:true});
-
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
-
 
 app.get("/products/:id", async (req, res) => {
 try {
@@ -55,6 +52,7 @@ try {
   }
 });
 
+// Récupérer tous les produits
 app.get("/products",async (req, res) => {
     const product = await sql `
     SELECT * 
@@ -63,7 +61,13 @@ app.get("/products",async (req, res) => {
 res.json(product);
 
 });
+ app.get("/users",async (req, res) => {
+    const user = await sql `
+    SELECT * 
+    FROM users`; 
 
+res.json(user);
+});
 
 app.post("/products/",async (req,res) => {
 
@@ -113,6 +117,7 @@ app.post("/users/",async (req,res) => {
         if (!result.success){
             res.status(400).json({message: "donnée incorrecte"})
         } else {
+
             const hash = createHash('sha512');
 
             const mdp = result.data.password;
@@ -123,9 +128,40 @@ app.post("/users/",async (req,res) => {
         const [newUser] = await sql`
           INSERT INTO users (pseudo, password, mail)
           VALUES ( ${pseudo}, ${hashPassword}, ${mail})
-          RETURNING (pseudo,mail) 
+          RETURNING id,pseudo,mail 
         `;
 
+       res.status(201).json(newUser);
+    }
+    
+    } catch(err){
+        res.status(500).json({error:err.message});
+    }
+
+});
+
+app.put("/users/:id",async (req,res) => {
+
+    try{
+      const { id } = req.params;
+        const result = UserSchema.safeParse(req.body);
+        if (!result.success){
+            res.status(400).json({message: "donnée incorrecte"})
+        } else {
+            const hash = createHash('sha512');
+
+            const mdp = result.data.password;
+            hash.update(mdp);
+            const hashPassword = hash.digest('hex');
+           const {pseudo,mail} = result.data; 
+
+        const [newUser] = await sql`
+          UPDATE users 
+          SET pseudo = ${pseudo}, password = ${hashPassword}, mail = ${mail}
+          WHERE id = ${id}
+          RETURNING id,pseudo,mail
+        `;
+         
        res.status(201).json(newUser);
     }
     

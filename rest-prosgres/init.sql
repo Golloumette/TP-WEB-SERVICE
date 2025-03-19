@@ -6,6 +6,7 @@ CREATE TABLE products (
 );
 
 CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
   pseudo VARCHAR (50),
   password VARCHAR (200),
   mail VARCHAR (150)
