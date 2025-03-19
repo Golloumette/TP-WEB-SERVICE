@@ -194,6 +194,11 @@ app.put("/users/:id",async (req,res) => {
     }
 
 });
+app.get("/api/freeToGame", async (req, res) => {
+  fetch("https://www.freetogame.com/api/games")
+    .then((response) => response.json())
+    .then((data) => res.json(data));
+});
 
 app.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);
