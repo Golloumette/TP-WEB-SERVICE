@@ -3,7 +3,7 @@ const express = require("express");
 const postgres = require("postgres");
 const z = require("zod");
 const { createHash } = require('node:crypto');
-
+const { console } = require("node:inspector");
 const app = express();
 const port = 8000;
 const sql = postgres({ db: "mydb", user: "user", password: "password" });
@@ -139,6 +139,30 @@ app.post("/users/",async (req,res) => {
     }
 
 });
+
+app.patch("/users/:id",async (req,res) => { 
+      try{
+        const { id } = req.params;
+           const result = req.body;
+            const columns =Object.keys(result); 
+            const user = result;          
+          const [newUser] = await sql`
+          update users set ${
+            sql(user, columns)
+          }
+          where id = ${ id }
+            RETURNING id,pseudo,mail
+          `;
+          
+        res.status(201).json(newUser);
+      
+      
+      } catch(err){
+          res.status(500).json({error:err.message});
+      }
+  
+  }
+  );
 
 app.put("/users/:id",async (req,res) => {
 
