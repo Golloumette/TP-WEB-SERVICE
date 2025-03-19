@@ -3,7 +3,6 @@ const express = require("express");
 const postgres = require("postgres");
 const z = require("zod");
 const { createHash } = require('node:crypto');
-const { console } = require("node:inspector");
 const app = express();
 const port = 8000;
 const sql = postgres({ db: "mydb", user: "user", password: "password" });
@@ -52,15 +51,43 @@ try {
   }
 });
 
-// Récupérer tous les produits
+//Récupére les produits en fonction d'un paramètre
 app.get("/products",async (req, res) => {
-    const product = await sql `
-    SELECT * 
-    FROM products`;
+  try{
+    
+    const valeur = req.query[Object.keys(req.query)[0]];
+    const params = Object.keys(req.query)[0];
+   console.log("params :",params,"valeur :",valeur);
 
-res.json(product);
+// Vérifiez si des paramètres de requête sont fournis
+if (Object.keys(req.query).length === 0) {
+  return res.status(400).json({ message: "Aucun paramètre fourni" });
+}
 
+// Construire dynamiquement la clause WHERE
+const conditions = Object.entries(req.query)
+  .map(([key, value]) => `${key} = '${value}'`)
+  .join(" AND ");
+
+// Construire la requête SQL
+const query = `
+  SELECT * 
+  FROM products
+  WHERE ${conditions}
+`;
+
+console.log("Requête SQL générée :", query);
+
+// Exécuter la requête SQL
+const products = await sql.unsafe(query);
+    // Retourner les résultats
+    res.json(products);
+  } catch (err) {
+    console.error("Erreur :", err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
+
  app.get("/users",async (req, res) => {
     const user = await sql `
     SELECT * 
