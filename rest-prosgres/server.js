@@ -226,6 +226,12 @@ app.get("/api/freeToGame", async (req, res) => {
     .then((response) => response.json())
     .then((data) => res.json(data));
 });
+app.get("orders", async (req, res) => {
+  const orders = await sql`
+    SELECT * 
+    FROM orders`;
+  res.json(orders);
+});
 
 app.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`);
